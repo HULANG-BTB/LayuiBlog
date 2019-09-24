@@ -1,0 +1,120 @@
+{extend name="public/Base"} {block name="link"} {/block} {block name="script"} {/block} {block name="body"}
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header">文章列表</div>
+                <div class="layui-card-body">
+                    <div class="table-search-btn" style="margin-bottom: 10px;">
+                        搜索(关键字)：
+                        <div class="layui-inline">
+                            <input class="layui-input" name="keyword" id="keyword" autocomplete="off">
+                        </div>
+                        <button class="layui-btn" data-type="reload">搜索 / 刷新</button>
+                    </div>
+                    <table class="layui-hide" id="article-list" lay-filter="article-list"></table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="thisJs"}
+
+{/block}
+{block name="thisScript"}
+<script type="text/html" id="toolBar">
+    <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+<script>
+    layui.config({
+        base: '/static/admin/' //静态资源所在路径
+    }).extend({
+        index: 'lib/index' //主入口模块
+    }).use(['index', 'table', 'layer'], function () {
+        var $ = layui.jquery
+            ,table = layui.table
+            ,layer = layui.layer;
+
+        table.render({
+            elem: '#article-list'
+            ,url: '{:url("admin/article/read")}'
+            ,height: 'full-100'
+            ,cellMinWidth: 80
+            ,page: true
+            ,limit: 30
+            ,cols: [[
+                {type:'checkbox'}
+                ,{field:'id', title: 'ID', width:100, sort: true}
+                ,{field:'title', title: '标题', width:250, sort: true}
+                ,{field:'thumbnail', title: '缩略图', width:150, templet:function (res) { return '<img src="'+res.thumbnail+'" />'; }}
+                ,{field:'abstract', title: '摘要', minWidth: 150}
+                ,{field:'username', title: '用户', sort: true, width: 120, align: 'center'}
+                ,{field:'create_time', title: '发布时间', sort: true, width: 160, align: 'center'}
+                ,{field:'create_time', title: '更新时间', sort: true, width: 160, align: 'center'}
+                ,{field:'id', title: '操作', toolbar: '#toolBar', width: 120, align: 'center'}
+            ]]
+            ,response: {
+                statusName : "code",
+                statusCode : 1,
+                msgName : "msg",
+                countName : "wait",
+                dataName : "data",
+            }
+            ,loading: true
+            ,id: "article-list"
+        });
+
+        table.on('tool(article-list)', function(obj){
+            var data = obj.data;
+            if(obj.event === 'edit'){
+                layer.open({
+                    type: 2,
+                    title: '编辑文章：' + data.title,
+                    shadeClose: true,
+                    shade: false,
+                    maxmin: true, //开启最大化最小化按钮
+                    area: ['893px', '600px'],
+                    content: '{:url("admin/article/edit", ["id" => "articleid"])}'.replace("articleid", data.id),
+                    btn: ['保存', '取消'],
+                    yes: function(index, layero){
+                        var iframeWindow = window['layui-layer-iframe'+ index]
+                            ,submitID = 'update-article'
+                            ,submit = layero.find('iframe').contents().find('#'+ submitID);
+                        submit.trigger('click');
+                    }
+                });
+
+            } else if(obj.event === 'del') {
+                layer.confirm('真的删除行么', function(index){
+                    $.ajax({
+                        url : "{:url('admin/article/delete')}",
+                        method : "POST",
+                        data: {id : data.id},
+                        dataType: "JSON",
+                        success : function (res) {
+                            if (res.code) obj.del();
+                            layer.close(index);
+                            layer.msg(res.msg, {time: 2000, icon: !(res.code) + 1});
+                        }
+                    });
+                });
+            }
+        });
+
+        $('.table-search-btn .layui-btn').on('click', function(){
+            var type = $(this).data('type');
+            table.reload( "article-list",{
+                where: {
+                    keyword: $("#keyword").val(),
+                },
+                page: {
+                    curr: 1,
+                }
+            });
+        });
+
+    });
+</script>
+{/block}

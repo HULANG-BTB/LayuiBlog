@@ -1,0 +1,77 @@
+{extend name="public/Base"} {block name="link"}
+    {css href="/static/admin/css/formSelects-v4.css" /}
+    {css href="/static/editor/css/editormd.min.css" /}
+{/block}
+{block name="script"}
+    {js href="/static/JQuery/jquery-3.4.0.min.js" /}
+    {js href="/static/editor/editormd.min.js" /}
+{/block} {block name="body"}
+<div class="layui-form" lay-filter="layuiadmin-form-useradmin" id="layuiadmin-form-useradmin" style="padding: 20px 0 0 0;">
+    <div class="layui-form-item">
+        <label class="layui-form-label">用户组</label>
+        <div class="layui-input-inline">
+            <input type="text" name="name" value="{$Group->name}" lay-verify="required" placeholder="请输入用户名" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">选择权限</label>
+        <div class="layui-input-block">
+            <div id="LAY-auth-tree-index"></div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">状态</label>
+        <div class="layui-input-block">
+            <input type="checkbox" name="status" {eq name="Group->status" value="normal"}checked="" {/eq}lay-skin="switch" lay-text="ON|OFF">
+        </div>
+    </div>
+    <div class="layui-form-item layui-hide">
+        <input type="hidden" name="id" value="{$Group->id}">
+        <button class="layui-btn" lay-submit lay-filter="LAY-group-front-submit" id="LAY-group-front-submit">立即提交</button>
+    </div>
+
+</div>
+{/block}
+{block name="thisJs"}
+
+{/block}
+{block name="thisScript"}
+<script>
+    layui.config({
+        base: '/static/admin/' //静态资源所在路径
+    }).extend({
+        index: 'lib/index', //主入口模块
+        authtree: 'authtree',
+    }).use(['index', 'form', 'layer', 'upload', 'authtree'], function () {
+        var $ = layui.$
+            ,form = layui.form
+            ,upload = layui.upload
+            ,layer = layui.layer
+            ,authtree = layui.authtree;
+
+        $.ajax({
+            url: '{:url("admin/user/groupRuleList")}',
+            method: 'POST',
+            dataType: 'json',
+            success: function (data) {
+                var trees = authtree.listConvert(data.data, {
+                    primaryKey: 'id'
+                    ,startPid: 0
+                    ,parentKey: 'pid'
+                    ,nameKey: 'name'
+                    ,valueKey: 'id'
+                    ,checkedKey: [{$Group->rules}],
+                });
+                // 如果后台返回的不是树结构，请使用 authtree.listConvert 转换
+                authtree.render('#LAY-auth-tree-index', trees, {
+                    inputname: 'rules[]',
+                    layfilter: 'lay-check-auth',
+                    autowidth: true,
+                });
+            }
+        });
+
+    });
+
+</script>
+{/block}

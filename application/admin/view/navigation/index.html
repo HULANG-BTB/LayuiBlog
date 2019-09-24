@@ -1,0 +1,190 @@
+{extend name="public/Base"} {block name="link"} {/block} {block name="script"} {/block} {block name="body"}
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header">文章列表</div>
+                <div class="layui-card-body">
+                    <div class="table-search-btn" style="margin-bottom: 10px;">
+                        搜索(关键字)：
+                        <div class="layui-inline">
+                            <input class="layui-input" name="keyword" id="keyword" autocomplete="off">
+                        </div>
+                        <button class="layui-btn" data-type="reload">搜索 / 刷新</button>
+                        <button class="layui-btn" data-type="add"><i class="layui-icon"></i></button>
+                    </div>
+                    <table class="layui-hide" id="navigation-list" lay-filter="navigation-list"></table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="thisJs"}
+
+{/block}
+{block name="thisScript"}
+<script type="text/html" id="toolBar">
+    <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="edit">编辑</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+<script>
+    layui.config({
+        base: '/static/admin/' //静态资源所在路径
+    }).extend({
+        index: 'lib/index' //主入口模块
+    }).use(['index', 'table', 'layer'], function () {
+        var $ = layui.jquery
+            ,table = layui.table
+            ,layer = layui.layer;
+
+        table.render({
+            elem: '#navigation-list'
+            ,url: '{:url("admin/navigation/read")}'
+            ,height: 'full-100'
+            ,cellMinWidth: 80
+            ,page: true
+            ,limit: 30
+            ,cols: [[
+                {type:'checkbox'}
+                ,{field:'id', title: 'ID', sort: true}
+                ,{field:'name', title: '名称'}
+                ,{field:'url', title: '地址'}
+                ,{field:'type', title: '打开方式', align: 'center', templet: function (obj) {
+                        if (obj.type) return "<span class=\"layui-btn layui-btn-default layui-btn-xs\" >新标签页</span>";
+                        else return "<span class=\"layui-btn layui-btn-danger layui-btn-xs\" >当前页面</span>";
+                    }}
+                ,{field:'status', title: '状态', align: 'center', templet: function (obj) {
+                        if (!obj.status) return "<span class=\"layui-btn layui-btn-default layui-btn-xs\" >显示</span>";
+                        else return "<span class=\"layui-btn layui-btn-danger layui-btn-xs\" >隐藏</span>";
+                    }}
+                ,{field:'weigh', title: '权重'}
+                ,{field:'create_time', title: '发布时间', sort: true, align: 'center'}
+                ,{field:'create_time', title: '更新时间', sort: true, align: 'center'}
+                ,{field:'id', title: '操作', toolbar: '#toolBar', minWidth: 120, align: 'center', fixed: "right"}
+            ]]
+            ,response: {
+                statusName : "code",
+                statusCode : 1,
+                msgName : "msg",
+                countName : "wait",
+                dataName : "data",
+            }
+            ,loading: true
+            ,id: "navigation-list"
+        });
+
+        table.on('tool(navigation-list)', function(obj){
+            var data = obj.data;
+            if(obj.event === 'del') {
+                layer.confirm('真的删除么?删除后无法恢复！', function(index){
+                    $.ajax({
+                        url : "{:url('admin/navigation/delete')}",
+                        method : "POST",
+                        data: {id : data.id},
+                        dataType: "JSON",
+                        success : function (res) {
+                            if (res.code) obj.del();
+                            layer.close(index);
+                            layer.msg(res.msg, {time: 1000, icon: !(res.code) + 1});
+                        }
+                    });
+                });
+            } else if (obj.event == 'edit') {
+                layer.open({
+                    type: 2,
+                    title: '添加规则',
+                    shadeClose: true,
+                    shade: false,
+                    maxmin: true, //开启最大化最小化按钮
+                    btn: ['确定', '取消'],
+                    area: ['800px', '350px'],
+                    content: '{:url("admin/navigation/edit", ["id" => "Nid"])}'.replace("Nid", data.id),
+                    yes: function(index, layero){
+                        var iframeWindow = window['layui-layer-iframe'+ index]
+                            ,submitID = 'Navigation-Edit-Submit'
+                            ,submit = layero.find('iframe').contents().find('#'+ submitID);
+                        //监听提交
+                        iframeWindow.layui.form.on('submit('+ submitID +')', function(data){
+                            var field = data.field; //获取提交的字段
+                            console.log(field);
+                            $.ajax({
+                                url : "{:url('admin/navigation/update')}",
+                                method: "POST",
+                                data: field,
+                                dataType: "JSON",
+                                success: function (res) {
+                                    layer.msg(res.msg, {icon: !res.code + 1, time: 1000}, function(){
+                                        if (res.code) {
+                                            table.reload('navigation-list'); //数据刷新
+                                        }
+                                        layer.close(index);
+                                    });
+                                }
+                            });
+                            return false;
+                        });
+                        submit.trigger('click');
+                    }
+                });
+            }
+        });
+
+        $('.table-search-btn .layui-btn').on('click', function(){
+            var type = $(this).data('type');
+            switch (type) {
+                case 'reload':
+                    table.reload( "navigation-list",{
+                        where: {
+                            keyword: $("#keyword").val(),
+                        },
+                        page: {
+                            curr: 1,
+                        }
+                    });
+                    break;
+                case 'add':
+                    layer.open({
+                        type: 2,
+                        title: '添加规则',
+                        shadeClose: true,
+                        shade: false,
+                        maxmin: true, //开启最大化最小化按钮
+                        btn: ['确定', '取消'],
+                        area: ['800px', '350px'],
+                        content: '{:url("admin/navigation/add")}',
+                        yes: function(index, layero){
+                            var iframeWindow = window['layui-layer-iframe'+ index]
+                                ,submitID = 'Navigation-Create-Submit'
+                                ,submit = layero.find('iframe').contents().find('#'+ submitID);
+                            //监听提交
+                            iframeWindow.layui.form.on('submit('+ submitID +')', function(data){
+                                var field = data.field; //获取提交的字段
+                                console.log(field);
+                                $.ajax({
+                                    url : "{:url('admin/navigation/insert')}",
+                                    method: "POST",
+                                    data: field,
+                                    dataType: "JSON",
+                                    success: function (res) {
+                                        layer.msg(res.msg, {icon: !res.code + 1, time: 1000}, function(){
+                                            if (res.code) {
+                                                table.reload('navigation-list'); //数据刷新
+                                            }
+                                            layer.close(index);
+                                        });
+                                    }
+                                });
+                                return false;
+                            });
+                            submit.trigger('click');
+                        }
+                    });
+                    break;
+            }
+
+        });
+
+    });
+</script>
+{/block}

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>回复</title>
+    {css href="/static/layui/css/layui.css" /}
+    {js href="/static/layui/layui.js" /}
+</head>
+<body>
+<div class="layui-form">
+    <div class="layui-form-item">
+        <textarea name="" id="reply-edit"></textarea>
+    </div>
+    <div class="layui-form-item layui-hide">
+        <button class="layui-btn" lay-submit lay-filter="reply-submit" id="reply-submit">立即提交</button>
+    </div>
+</div>
+<script>
+    layui.use(['layedit', 'form'], function () {
+        var layedit = layui.layedit,
+            form = layui.form,
+            $ = layui.jquery;
+        var option = {
+            tool: ['strong', 'italic', 'underline', 'del', '|', 'left', 'center', 'right', '|', 'link', 'unlink', 'face'],
+        };
+        var index = layedit.build('reply-edit', option);
+
+        form.on('submit(reply-submit)', function (data) {
+            var content = layedit.getContent(index);
+            var data = {
+                article_id: "{$Aid}",
+                parent_id: "{$Pid}",
+                context: content,
+            };
+            $.ajax({
+                url : "{:url('index/comment/insert')}",
+                method: "POST",
+                data: data,
+                dataType: "JSON",
+                success: function (res) {
+                    layer.msg(res.msg, {icon: !res.code + 1, time: 1000}, function(){
+                        layer.close(index);
+                        if (res.code) {
+                            var index = parent.layer.getFrameIndex(window.name);
+                            parent.layer.close(index);
+                        }
+                    });
+                }
+            });
+        });
+
+    });
+</script>
+</body>
+</html>

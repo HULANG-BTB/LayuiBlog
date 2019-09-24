@@ -1,0 +1,117 @@
+{extend name="public/base"}
+{block name="link"}
+{css href= "/static/JQuery/jquery-ui-1.12.1/jquery-ui.min.css" /}
+{/block}
+{block name="script"} {/block}
+{block name="header"}{__block__}{/block}
+{block name="main"}
+<div class="layui-row layui-hide-xs">
+    <div class="layui-card app-panel">
+        <div class="layui-card-body">
+            这里应该是一些公告内容；
+        </div>
+    </div>
+    <div class="layui-card app-panel">
+        <div class="layui-card-header app-panel-title">最新</div>
+        <div class="layui-card-body">
+            <div class="app-article-list app-article-new">
+                <ul>
+                    <i class="layui-icon layui-icon-loading layui-anim layui-anim-rotate layui-anim-loop"></i> 加载中...
+                </ul>
+            </div>
+            <div class="app-article-page"></div>
+        </div>
+    </div>
+</div>
+
+{/block}
+{block name="side"}
+{__block__}
+{/block}
+{block name="footer"}
+{__block__}
+{/block}
+{block name="thisJs"}
+{js href="/static/JQuery/jquery-3.4.0.min.js" /}
+{js href="/static/JQuery/jquery-ui-1.12.1/jquery-ui.min.js" /}
+{/block}
+{block name="thisScript"}
+{js href="/static/app/js/base.js" /}
+<script>
+    layui.use(['element', 'carousel', 'laypage', 'flow'], function(){
+        var element = layui.element,
+            carousel = layui.carousel,
+            laypage = layui.laypage,
+            flow = layui.flow;
+
+        carousel.render({
+            elem: '#carousel'
+            ,width: '100%'
+            ,height: '172px'
+            ,interval: 3000
+            ,anim: 'fade'
+        });
+
+        // 获取文章条数，渲染分页
+        $.ajax({
+            url: "/index/tag/getCount",
+            method: "POST",
+            data: { tag: "{$Tag.id}"},
+            dataType: "JSON",
+            success: function (rst) {
+                laypage.render({
+                    elem: $('.app-article-page')
+                    ,count: rst.data
+                    ,limit: 10
+                    ,layout: ['first', 'prev', 'page', 'next', 'last']
+                    ,jump: function (obj) {
+                        loadPage(obj.curr);
+                    }
+                });
+            }
+        });
+
+        function loadPage(page = 1) {
+            var loading = '<i class="layui-icon layui-icon-loading layui-anim layui-anim-rotate layui-anim-loop"></i> 加载中...';
+            $('.app-progress-load').removeClass('layui-hide');
+            $('.app-article-list.app-article-new ul').html(loading);
+
+            $.ajax({
+                url: "/index/tag/getList",
+                method: "POST",
+                data: {page: page, tag: "{$Tag.id}"},
+                dataType: "JSON",
+                success: function (rst) {
+                    var data = rst.data;
+                    var html = "";
+                    for (var item in data) {
+                        html += "\n" +
+                            "                    <li>\n" +
+                            "                        <a class=\"focus\" href=\"/index/article/detail/id/" + data[item].id + "\" title=\"" + data[item].title + "\" target=\"_blank\">\n" +
+                            "                            <img class=\"thumbnail layui-anim-scaleSpring\" lay-src=\"" + data[item].thumbnail + "\" alt=\"" + data[item].title + "\">\n" +
+                            "                        </a>\n" +
+                            "                        <div class=\"title\">\n" +
+                            "                            <a class=\"category\" title=\"" + data[item].category_name + "\" href=\"/index/category/index/id/" + data[item].category_id + "\">" + data[item].category_name + "<i></i></a>\n" +
+                            "                            <h2><a href=\"/index/article/detail/id/" + data[item].id + "\" title=\"" + data[item].title + "\">" + data[item].title + "</a></h2>\n" +
+                            "                        </div>\n" +
+                            "                        <div class=\"meta\">\n" +
+                            "                            <span class=\"time\" title=\"\" data-toggle=\"tooltip\" data-placement=\"bottom\" data-original-title=\"发布时间\"><i class=\"layui-icon layui-icon-release\"></i> " + data[item].create_time + "</span>\n" +
+                            "                            <span class=\"views\" title=\"\" data-toggle=\"tooltip\" data-placement=\"bottom\" data-original-title=\"阅读量\"><i class=\"layui-icon layui-icon-search\"></i> " + data[item].view_count + "</span>\n" +
+                            "                            <span class=\"comment\" title=\"\" data-toggle=\"tooltip\" data-placement=\"bottom\" target=\"_blank\" data-original-title=\"评论量\"><i class=\"layui-icon layui-icon-note\"></i> " + data[item].comment_count + "</span>\n" +
+                            "                        </div>\n" +
+                            "                        <div class=\"note\">" + data[item].abstract + "</div>\n" +
+                            "                    </li>";
+                    }
+                    $('.app-article-list.app-article-new ul').html(html);
+                    flow.lazyimg();
+                    $('.app-progress-load').addClass('layui-hide');
+                }
+            });
+        }
+
+        // 图片懒加载
+        flow.lazyimg();
+    });
+    $(document).tooltip();
+</script>
+{/block}

@@ -1,0 +1,151 @@
+{extend name="public/base"}
+{block name="link"}
+    {css href="/static/JQuery/jquery-ui-1.12.1/jquery-ui.min.css" /}
+    {css href="/static/editor/css/editormd.css" /}
+{/block}
+{block name="script"} {/block}
+{block name="header"}{__block__}{/block}
+{block name="main"}
+<div class="layui-row layui-hide-xs">
+    <div class="layui-card app-panel">
+        <div class="layui-card-body">
+            <div class="app-article-content">
+                <div class="app-article-header">
+                    <h1 class="app-article-title" title="{$Article.title}">{$Article.title}</h1>
+                    <div class="app-article-meta">
+                        <ul>
+                            <li title="发布者" data-toggle="tooltip"><i class="layui-icon layui-icon-user"></i> {$Article.username}</li>
+                            <li title="分类" data-toggle="tooltip"><i class="layui-icon layui-icon-read"></i> {$Article.category.name}</li>
+                            <li title="发布时间" data-toggle="tooltip"><i class="layui-icon layui-icon-release"></i> {$Article.create_time}</li>
+                            <li title="阅读量" data-toggle="tooltip"><i class="layui-icon layui-icon-search"></i> {$Article.view_count}</li>
+                            <li title="评论数目" data-toggle="tooltip"><i class="layui-icon layui-icon-note"></i> {$Article.comment_count}</li>
+                        </ul>
+                    </div>
+                    <div class="app-article-tag app-tag-list">
+                        <ul>
+{volist name="Article->tag" id="item"}
+                            <li><a href="{:url('index/tag/index', ['id' => $item.id])}">{$item.name}</a></li>
+{/volist}
+                        </ul>
+                    </div>
+                </div>
+                <div class="app-article-context">
+                    <div id="app-article-context">
+                        <textarea style="display: none;">{$Article.content}</textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="layui-card app-panel">
+        <div class="layui-card-body">
+            <div class="app-article-comment">
+                <div class="app-comment-title">
+                    <h2>评论</h2>
+                </div>
+                <div class="app-comment-list">
+                    <ul>
+                        <li>
+                            <div class="avator">
+                                <img src="/uploads/images/avator/1.jpg" alt="">
+                            </div>
+                            <div class="content">
+                                <div class="header">
+                                    <strong><a href="#">名字</a></strong>
+                                    <em><i class="layui-icon layui-icon-survey"></i> 时间：1 小时前</em>
+                                    <em><i class="layui-icon layui-icon-location"></i> 位置信息</em>
+                                </div>
+                                <div class="main">
+                                    <p>这里显示评论的内容</p>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="app-comment-content">
+                    <div class="layui-form">
+                        <div class="layui-form-item">
+                            <textarea name="content" id="reply-edit" cols="30" rows="10"></textarea>
+                        </div>
+                        <div class="layui-form-item">
+                            <button class="layui-btn" lay-submit lay-filter="reply-submit" id="reply-submit">立即提交</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{/block}
+{block name="side"}
+{__block__}
+{/block}
+{block name="footer"}
+{__block__}
+{/block}
+{block name="thisJs"}
+    {js href="/static/JQuery/jquery-3.4.0.min.js"}
+    {js href="/static/JQuery/jquery-ui-1.12.1/jquery-ui.min.js"}
+    <!-- MdEditor Js -->
+    {js href="/static/editor/lib/marked.min.js"}
+    {js href="/static/editor/lib/prettify.min.js"}
+    {js href="/static/editor/lib/raphael.min.js"}
+    {js href="/static/editor/lib/underscore.min.js"}
+    {js href="/static/editor/lib/sequence-diagram.min.js"}
+    {js href="/static/editor/lib/flowchart.min.js"}
+    {js href="/static/editor/lib/jquery.flowchart.min.js"}
+    {js href="/static/editor/editormd.min.js"}
+{/block}
+{block name="thisScript"}
+    {js href="/static/app/js/base.js" /}
+    {js href="/static/app/js/article.js" /}
+<script>
+    $(document).tooltip();
+    $(document).ready(function () {
+        commentRender("{:url('index/comment/getComment')}", "{$Article->id}");
+    })
+
+    layui.use(['layedit', 'layer', 'form'], function () {
+        var layEdit = layui.layedit,
+            layer = layui.layer,
+            form = layui.form;
+
+        var index = layEdit.build('reply-edit', {
+            tool: ['strong', 'italic', 'underline', 'del', '|', 'left', 'center', 'right', '|', 'link', 'unlink', 'face'],
+        });
+        $('.app-comment-reply').on('click', function() {
+            var user = $(this).attr('data-user');
+            var pid = $(this).attr('data-pid');
+            console.log(user, pid);
+            layer.open({
+                type: 2,
+                title: "回复：" + user,
+                shadeClose: true,
+                shade: false,
+                btn: ['确定', '取消'],
+                area: ['800px', '440px'],
+                content: '{:url("index/comment/reply", ["Aid" => $Article->id, "Pid" => "parent_id"])}'.replace("parent_id", pid),
+                yes: function(index, layero){
+                    var iframeWindow = window['layui-layer-iframe'+ index]
+                        ,submitID = 'reply-submit'
+                        ,submit = layero.find('iframe').contents().find('#'+ submitID);
+                    //监听提交
+                    submit.trigger('click');
+                }
+            });
+        });
+
+        form.on('submit(reply-submit)', function (data) {
+            var content = layEdit.getContent(index);
+            addComment("{:url('index/comment/insert')}", content, "{$Article->id}");
+        });
+
+    });
+
+
+    
+
+</script>
+{/block}

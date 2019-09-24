@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<!-- 页面head内容 -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="Cache-Control" content="no-siteapp" />
+    <!-- SEO设置 -->
+    <title>{$Title}</title>
+    <meta name="description" content="{$Description}">
+    <meta name="keywords" content="{$Keyword}">
+    <link rel="icon" type="image/png" href="{$Favicon|default='/favicon.ico'}">
+    <!-- 全局style -->
+{include file="public/link"}
+    <!-- 用户自定义style -->
+{block name="link"} {/block}
+    <!-- 全局JavaScript -->
+{include file="public/script"}
+    <!-- 用户自定义全局JS -->
+{block name="script"} {/block}
+</head>
+<!-- 页面body内容 -->
+<body>
+<!-- 导航栏 -->
+{block name="header"}
+<div class="app-header layui-bg-black">
+    <div class="layui-container">
+        <a class="app-logo" href="/"><img src="/logo.png" alt=""></a>
+        <ul class="layui-nav app-nav" lay-filter="">
+{volist name="Navigation" id="item"}
+            <li class="layui-nav-item">
+                <a href="{$item.url}"{eq name="$item.type" value="1"} target="_blank"{/eq}>{$item.name}</a>
+            </li>
+{/volist}
+        </ul>
+        <ul class="layui-nav app-nav-user" lay-filter="">
+            <li class="layui-nav-item">
+                <a href="javascript:;">登录</a>
+            </li>
+            <li class="layui-nav-item">
+                <a href="javascript:;">注册</a>
+            </li>
+            <li class="layui-nav-item">
+                <div class="search-box">
+                    <input type="text" name="keywords" placeholder="Search...">
+                    <span class="search"></span>
+                </div>
+            </li>
+        </ul>
+    </div>
+    <div class="layui-progress app-progress-load layui-hide">
+        <div class="layui-progress-bar layui-bg-blue" lay-percent="0%"></div>
+    </div>
+</div>
+{/block}
+
+<div class="app-container" >
+    <div class="layui-container">
+        <div class="layui-row layui-col-space15">
+            <!-- 页面主体内容 -->
+            <div class="layui-col-md8">
+                <div class="app-main">
+                    {block name="main"}主体内容{/block}</div>
+                </div>
+            <!-- 侧边栏 -->
+            <div class="layui-col-md4">
+                <div class="app-side">
+                    {block name="side"}
+                        {include file="public/side"}
+                    {/block}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 页面底部 -->
+<div class="app-footer">
+{block name="footer"}
+    <p>
+        <a href="https://oibit.cn">AloneH Bolg</a>
+        2019 ©
+        <a href="https://oibit.cn">AloneH</a>
+    </p>
+    <p>
+        QQ:
+        <a href="#">77023581</a>
+    </p>
+    <p>
+        GitHub:
+        <a href="https://github.com/HULANG-BTB">HULANG-BTB</a>
+    </p>
+{/block}
+</div>
+<!-- 本页面JS -->
+{block name="thisJs"} {/block}
+<!-- 本页面Script -->
+{block name="thisScript"} {/block}
+</body>
+</html>

@@ -1,0 +1,89 @@
+{extend name="public/Base"} {block name="link"}
+{css href="/static/admin/css/formSelects-v4.css" /}
+{css href="/static/editor/css/editormd.min.css" /}
+{/block}
+{block name="script"}
+{js href="/static/JQuery/jquery-3.4.0.min.js" /}
+{js href="/static/editor/editormd.min.js" /}
+{/block} {block name="body"}
+<div class="layui-fluid">
+    <form class="layui-form" id="article" action="" lay-filter="baseinfo">
+        <div class="layui-card">
+            <div class="layui-card-header">规则信息</div>
+            <div class="layui-card-body" style="padding: 15px;">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">父级</label>
+                    <div class="layui-input-block">
+                        <select name="pid" id="parent" lay-verify="required"  multiple xm-select="tags" xm-select-search="">
+                            <option value="0" selected>无</option>
+                            {volist name="RuleList" id="Item"}
+                            <option value="{$Item.id}">　{$Item.title}</option>
+                            {/volist}
+                        </select>
+                    </div>
+                </div>
+                <div class="layui-form-item layui-form-text">
+                    <label class="layui-form-label">标题</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="title" id="title" lay-verify="required" autocomplete="off" placeholder="请输入标题（* 必填）" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item layui-form-text">
+                    <label class="layui-form-label">规则</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="name" id="name" lay-verify="required" autocomplete="off" placeholder="请输入规则（* 必填）" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item layui-form-text">
+                    <label class="layui-form-label">备注</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="remark" id="remark" lay-verify="title" autocomplete="off" placeholder="请输入备注" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item layui-form-text">
+                    <label class="layui-form-label">菜单</label>
+                    <div class="layui-input-block">
+                        <input type="checkbox" name="ismenu" lay-skin="switch" lay-text="打开|关闭">
+                    </div>
+                </div>
+                <div class="layui-form-item layui-form-text">
+                    <label class="layui-form-label">状态</label>
+                    <div class="layui-input-block">
+                        <input type="checkbox" name="status" checked lay-skin="switch" lay-text="正常|隐藏">
+                    </div>
+                </div>
+                <div class="layui-form-item layui-form-text">
+                    <label class="layui-form-label">权重</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="weigh" id="weigh" lay-verify="title" autocomplete="off" placeholder="请输入权重" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item layui-hide">
+                    <button class="layui-btn" lay-submit lay-filter="Rule-Create-Submit" id="Rule-Create-Submit">立即提交</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+{/block}
+{block name="thisJs"}
+
+{/block}
+{block name="thisScript"}
+<script>
+    layui.config({
+        base: '/static/admin/' //静态资源所在路径
+    }).extend({
+        index: 'lib/index', //主入口模块
+        authtree: 'authtree',
+    }).use(['index', 'form', 'layer', 'authtree'], function () {
+        var $ = layui.$
+            ,form = layui.form
+            ,layer = layui.layer
+            ,authtree = layui.authtree;
+
+    });
+
+</script>
+{/block}

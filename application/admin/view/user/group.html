@@ -1,0 +1,183 @@
+{extend name="public/Base"} {block name="link"} {/block} {block name="script"} {/block} {block name="body"}
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header">文章列表</div>
+                <div class="layui-card-body">
+                    <div class="table-search-btn" style="margin-bottom: 10px;">
+                        搜索(关键字)：
+                        <div class="layui-inline">
+                            <input class="layui-input" name="keyword" id="keyword" autocomplete="off">
+                        </div>
+                        <button class="layui-btn" data-type="reload">搜索 / 刷新</button>
+                        <button class="layui-btn" data-type="add">添加</button>
+                    </div>
+                    <table class="layui-hide" id="user-list" lay-filter="group-list"></table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="thisJs"}
+
+{/block}
+{block name="thisScript"}
+<script type="text/html" id="toolBar">
+    <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+<script>
+    layui.config({
+        base: '/static/admin/' //静态资源所在路径
+    }).extend({
+        index: 'lib/index' //主入口模块
+    }).use(['index', 'table', 'layer'], function () {
+        var $ = layui.jquery
+            ,table = layui.table
+            ,layer = layui.layer;
+
+        table.render({
+            elem: '#user-list'
+            ,url: '{:url("admin/user/grouplist")}'
+            ,height: 'full-100'
+            ,cellMinWidth: 80
+            ,page: true
+            ,limit: 30
+            ,cols: [[
+                {type:'checkbox'}
+                ,{field:'id', title: 'ID', width:50, sort: true}
+                ,{field:'name', title: '用户组', width:250, sort: true, edit: "text"}
+                ,{field:'rules', title: '规则', sort: true, minWidth: 160, align: 'center'}
+                ,{field:'create_time', title: '创建时间', sort: true, width: 160, align: 'center'}
+                ,{field:'update_time', title: '修改时间', sort: true, width: 160, align: 'center'}
+                ,{field:'status', title: '状态', align: 'center', templet: function (data) {
+                        if (data.status == "normal") return '<button class="layui-btn layui-btn-default layui-btn-sm">正常</button>';
+                        else return '<button class="layui-btn layui-btn-danger layui-btn-sm">隐藏</button>';
+                    }}
+                ,{field:'id', title: '操作', toolbar: '#toolBar', width: 120, align: 'center'}
+            ]]
+            ,response: {
+                statusName : "code",
+                statusCode : 1,
+                msgName : "msg",
+                countName : "wait",
+                dataName : "data",
+            }
+            ,loading: true
+            ,id: "group-list"
+        });
+
+        table.on('tool(group-list)', function(obj){
+            var data = obj.data;
+            if(obj.event === 'edit'){
+                layer.open({
+                    type: 2,
+                    title: '编辑用户组：' + data.name,
+                    shadeClose: true,
+                    shade: false,
+                    maxmin: true, //开启最大化最小化按钮
+                    btn: ['确定', '取消'],
+                    area: ['400px', '400px'],
+                    content: '{:url("admin/user/groupEdit", ["id" => "groupid"])}'.replace("groupid", data.id),
+                    yes: function(index, layero){
+                        var iframeWindow = window['layui-layer-iframe'+ index]
+                            ,submitID = 'LAY-group-front-submit'
+                            ,submit = layero.find('iframe').contents().find('#'+ submitID);
+                        //监听提交
+                        iframeWindow.layui.form.on('submit('+ submitID +')', function(data){
+                            var field = data.field; //获取提交的字段
+                            $.ajax({
+                                url : "{:url('admin/user/groupUpdate')}",
+                                method: "POST",
+                                data: field,
+                                dataType: "JSON",
+                                success: function (res) {
+                                    layer.msg(res.msg, {icon: !res.code + 1, time: 1000}, function(){
+                                        if (res.code) {
+                                            table.reload('group-list'); //数据刷新
+                                        }
+                                        layer.close(index);
+                                    });
+                                }
+                            });
+
+                        });
+                        submit.trigger('click');
+                    }
+                });
+            } else if(obj.event === 'del') {
+                layer.confirm('真的删除行么', function(index){
+                    $.ajax({
+                        url : "{:url('admin/user/groupDelete')}",
+                        method : "POST",
+                        data: {id : data.id},
+                        dataType: "JSON",
+                        success : function (res) {
+                            if (res.code) obj.del();
+                            layer.close(index);
+                            layer.msg(res.msg, {time: 2000, icon: !(res.code) + 1});
+                        }
+                    });
+                });
+            }
+        });
+
+        $('.table-search-btn .layui-btn').on('click', function(){
+            var type = $(this).data('type');
+            switch (type) {
+                case 'reload' :
+                    table.reload( "group-list",{
+                        where: {
+                            keyword: $("#keyword").val(),
+                        },
+                        page: {
+                            curr: 1,
+                        }
+                    });
+                    break;
+                case 'add':
+                    layer.open({
+                        type: 2,
+                        title: '添加用户组',
+                        shadeClose: true,
+                        shade: false,
+                        maxmin: true, //开启最大化最小化按钮
+                        btn: ['确定', '取消'],
+                        area: ['400px', '400px'],
+                        content: '{:url("admin/user/groupAdd")}',
+                        yes: function(index, layero){
+                            var iframeWindow = window['layui-layer-iframe'+ index]
+                                ,submitID = 'LAY-group-front-submit'
+                                ,submit = layero.find('iframe').contents().find('#'+ submitID);
+                            //监听提交
+                            iframeWindow.layui.form.on('submit('+ submitID +')', function(data){
+                                var field = data.field; //获取提交的字段
+                                console.log(field);
+                                $.ajax({
+                                    url : "{:url('admin/user/groupInsert')}",
+                                    method: "POST",
+                                    data: field,
+                                    dataType: "JSON",
+                                    success: function (res) {
+                                        layer.msg(res.msg, {icon: !res.code + 1, time: 1000}, function(){
+                                            if (res.code) {
+                                                table.reload('group-list'); //数据刷新
+                                            }
+                                            layer.close(index);
+                                        });
+                                    }
+                                });
+                                return false;
+                            });
+                            submit.trigger('click');
+                        }
+                    });
+                    break;
+            }
+        });
+
+    });
+</script>
+{/block}

@@ -1,0 +1,91 @@
+{extend name="public/Base"} {block name="link"} {/block} {block name="script"} {/block} {block name="body"}
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header">网站设置</div>
+                <div class="layui-card-body" pad15>
+
+                    <div class="layui-form" wid100 lay-filter="email">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">SMTP服务器</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="mail_host" placeholder="smtp.qq.com" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">SMTP端口</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="mail_port" placeholder="465" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">SMTP用户名</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="mail_user" placeholder="user@qq.com" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">SMTP密码</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="mail_pass" placeholder="password" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">发件人地址</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="mail_from" placeholder="test@qq.com" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <div class="layui-input-block">
+                                <button class="layui-btn" lay-submit lay-filter="set_email">确认保存</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="thisJs"}
+
+{/block}
+{block name="thisScript"}
+<script>
+    layui.config({
+        base: '/static/admin/' //静态资源所在路径
+    }).extend({
+        index: 'lib/index' //主入口模块
+    }).use(['index', 'sample', 'form', 'layer'], function () {
+        var $ = layui.jquery
+            ,form = layui.form
+            ,layer = layui.layer;
+
+        form.on('submit(set_email)', function (options) {
+            var data = options.field;
+            $.ajax({
+                url: "{:url('admin/option/update')}",
+                method: "POST",
+                data: data,
+                dataType: "JSON",
+                success: function (res) {
+                    layer.msg(res.msg, {time: 2000, icon: !res.code+1}, function () {
+                        window.location.reload();
+                    });
+                }
+            });
+            return false;
+        })
+
+        form.val('email', {
+            "mail_host": "{$email.mail_host}",
+            "mail_port": "{$email.mail_port}",
+            "mail_user": "{$email.mail_user}",
+            "mail_pass": "{$email.mail_pass}",
+            "mail_from": "{$email.mail_from}"
+        });
+    });
+</script>
+{/block}

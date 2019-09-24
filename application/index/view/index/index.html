@@ -1,0 +1,64 @@
+{extend name="public/base"}
+{block name="link"}
+    {css href= "/static/JQuery/jquery-ui-1.12.1/jquery-ui.min.css" /}
+{/block}
+{block name="script"} {/block}
+{block name="header"}{__block__}{/block}
+{block name="main"}
+<div class="layui-row layui-hide-xs">
+    <div class="layui-card app-panel">
+        <div class="layui-card-body">
+            这里应该是一些公告内容；
+        </div>
+    </div>
+    <div class="layui-card app-panel">
+        <div class="layui-card-body">
+            <div class="layui-carousel" id="carousel" lay-filter="carousel">
+                <div carousel-item="">
+                    <div><img src="/uploads/images/1.jpg" width="100%"></div>
+                    <div><img src="/uploads/images/2.jpg" width="100%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="layui-card app-panel">
+        <div class="layui-card-header">置顶</div>
+        <div class="layui-card-body">
+            <div class="app-article-top app-article-list">
+                <ul>
+                    <i class="layui-icon layui-icon-loading layui-anim layui-anim-rotate layui-anim-loop"></i> 加载中...
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="layui-card app-panel">
+        <div class="layui-card-header app-panel-title">最新</div>
+        <div class="layui-card-body">
+            <div class="app-article-list app-article-new">
+                <ul>
+                    <i class="layui-icon layui-icon-loading layui-anim layui-anim-rotate layui-anim-loop"></i> 加载中...
+                </ul>
+            </div>
+            <div class="app-article-page"></div>
+        </div>
+    </div>
+</div>
+
+{/block}
+{block name="side"}
+{__block__}
+{/block}
+{block name="footer"}
+{__block__}
+{/block}
+{block name="thisJs"}
+    {js href="/static/JQuery/jquery-3.4.0.min.js" /}
+    {js href="/static/JQuery/jquery-ui-1.12.1/jquery-ui.min.js" /}
+{/block}
+{block name="thisScript"}
+    {js href="/static/app/js/base.js" /}
+    {js href="/static/app/js/index.js" /}
+    <script>
+        $(document).tooltip();
+    </script>
+{/block}

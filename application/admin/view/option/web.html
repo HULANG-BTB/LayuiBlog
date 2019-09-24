@@ -1,0 +1,124 @@
+{extend name="public/Base"} {block name="link"} {/block} {block name="script"} {/block} {block name="body"}
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header">网站设置</div>
+                <div class="layui-card-body" pad15>
+
+                    <div class="layui-form" wid100 lay-filter="options">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">网站名称</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="web_subtitle" placeholder="网站名称" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">网站域名</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="web_domain" lay-verify="url" placeholder="网站域名" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">缓存时间</label>
+                            <div class="layui-input-inline" style="width: 80px;">
+                                <input type="text" name="web_cache" lay-verify="number" placeholder="单位：分钟" class="layui-input">
+                            </div>
+                            <div class="layui-input-inline layui-input-company">分钟</div>
+                            <div class="layui-form-mid layui-word-aux">本地开发一般推荐设置为 0，线上环境建议设置为 10。</div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">最大文件上传</label>
+                            <div class="layui-input-inline" style="width: 80px;">
+                                <input type="text" name="upload_size" lay-verify="number" placeholder="单位：KB" class="layui-input">
+                            </div>
+                            <div class="layui-input-inline layui-input-company">KB</div>
+                            <div class="layui-form-mid layui-word-aux">提示：1 M = 1024 KB</div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">上传文件类型</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="upload_type" placeholder="png|jpg|gif" class="layui-input">
+                            </div>
+                        </div>
+
+                        <div class="layui-form-item layui-form-text">
+                            <label class="layui-form-label">首页标题</label>
+                            <div class="layui-input-block">
+                                <textarea name="web_title" class="layui-textarea" placeholder="首页标题"></textarea>
+                            </div>
+                        </div>
+                        <div class="layui-form-item layui-form-text">
+                            <label class="layui-form-label">META关键词</label>
+                            <div class="layui-input-block">
+                                <textarea name="web_keyword" class="layui-textarea" placeholder="META关键词"></textarea>
+                            </div>
+                        </div>
+                        <div class="layui-form-item layui-form-text">
+                            <label class="layui-form-label">META描述</label>
+                            <div class="layui-input-block">
+                                <textarea name="web_description" class="layui-textarea" placeholder="META描述"></textarea>
+                            </div>
+                        </div>
+                        <div class="layui-form-item layui-form-text">
+                            <label class="layui-form-label">版权信息</label>
+                            <div class="layui-input-block">
+                                <textarea name="web_copyright" class="layui-textarea" placeholder="版权信息"></textarea>
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <div class="layui-input-block">
+                                <button class="layui-btn" lay-submit lay-filter="set_website">确认保存</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="thisJs"}
+
+{/block}
+{block name="thisScript"}
+<script>
+    layui.config({
+        base: '/static/admin/' //静态资源所在路径
+    }).extend({
+        index: 'lib/index' //主入口模块
+    }).use(['index', 'sample', 'form', 'layer'], function () {
+        var $ = layui.jquery
+            ,form = layui.form
+            ,layer = layui.layer;
+
+        form.on('submit(set_website)', function (options) {
+            var data = options.field;
+            $.ajax({
+                url: "{:url('admin/option/update')}",
+                method: "POST",
+                data: data,
+                dataType: "JSON",
+                success: function (res) {
+                    layer.msg(res.msg, {time: 2000, icon: !res.code+1}, function () {
+                        window.location.reload();
+                    });
+                }
+            });
+            return false;
+        })
+
+        form.val('options', {
+            "web_subtitle": "{$options.web_subtitle}",
+            "web_domain": "{$options.web_domain}",
+            "web_cache": "{$options.web_cache}",
+            "upload_size": "{$options.upload_size}",
+            "upload_type": "{$options.upload_type}",
+            "web_title": "{$options.web_title}",
+            "web_keyword": "{$options.web_keyword}",
+            "web_description": "{$options.web_description}",
+            "web_copyright": "{$options.web_copyright}"
+        });
+    });
+</script>
+{/block}

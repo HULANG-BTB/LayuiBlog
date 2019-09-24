@@ -1,0 +1,151 @@
+{extend name="public/Base"} {block name="link"}
+    {css href="/static/admin/css/formSelects-v4.css" /}
+    {css href="/static/editor/css/editormd.min.css" /}
+{/block}
+{block name="script"}
+    {js href="/static/JQuery/jquery-3.4.0.min.js" /}
+    {js href="/static/editor/editormd.min.js" /}
+{/block} {block name="body"}
+<div class="layui-fluid">
+    <form class="layui-form" id="article" action="" lay-filter="baseinfo">
+        <div class="layui-card">
+            <div class="layui-card-header">基础信息</div>
+            <div class="layui-card-body" style="padding: 15px;">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">文章标题</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="title" id="title" lay-verify="title" autocomplete="off" placeholder="请输入标题（* 必填）" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">缩略图</label>
+                    <div class="layui-input-block">
+                        <input type="file" name="thumbnail" id="thumbnail" lay-verify="" placeholder="请选择缩略图（可留空）" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item layui-form-text">
+                    <label class="layui-form-label">文章摘要</label>
+                    <div class="layui-input-block">
+                        <textarea name="abstract" id="abstract" placeholder="请输入内容(可留空 默认取文章前255个字符)" class="layui-textarea"></textarea>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">分类</label>
+                    <div class="layui-input-block">
+                        <select name="category" id="category" lay-search>
+                            {volist name="Category" id="item"}
+                            <option value="{$item.id}" {eq name="$thisCategory" value="$item.id"}selected{/eq}>{$item.name}</option>
+                            {/volist}
+                        </select>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">标签</label>
+                    <div class="layui-input-block">
+                        <select name="tags" id="tags" multiple xm-select="tags" xm-select-search="">
+                            {volist name="Tag" id="item"}
+                            <option value="{$item.id}" {foreach $thisTags as $key=>$vo}{eq name="$vo" value="$item.id"}selected{/eq}{/foreach}>{$item.name}</option>
+                            {/volist}
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="layui-card">
+            <div class="layui-card-header">文章内容</div>
+            <div class="layui-card-body layui-row layui-col-space10">
+                <div class="layui-col-md12" id="md-editor">
+                    <textarea name="content" id="content" placeholder="请输入" class="layui-textarea">{$Article.content}</textarea>
+                </div>
+                <div class="layui-form-item layui-layout-admin layui-hide">
+                    <div class="layui-input-block">
+                        <div class="layui-btn-container">
+                            <button class="layui-btn layui-btn-fluid" lay-submit="" id="update-article" lay-filter="update-article">立即提交</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+{/block}
+{block name="thisJs"}
+
+{/block}
+{block name="thisScript"}
+<script>
+    layui.config({
+        base: '/static/admin/' //静态资源所在路径
+    }).extend({
+        index: 'lib/index', //主入口模块
+        formSelects: 'formSelects-v4'
+    }).use(['index', 'form', 'layer', 'formSelects'], function () {
+        var $ = layui.jquery
+            ,form = layui.form
+            ,layer = layui.layer
+            ,formSelects = layui.formSelects;
+
+        formSelects.render( 'tags');
+
+        form.val("baseinfo", {
+            "title" : "{$Article.title}",
+            "abstract" : "{$Article.abstract}",
+        });
+
+        form.on('submit(update-article)', function (options) {
+            var data = options.field;
+            var formData = new FormData(document.getElementById('article'));
+            formData.append('id', "{$Article.id}");
+            $.ajax({
+                url: '{:url("/admin/article/update");}',
+                method: 'POST',
+                data: formData,
+                dataTpye: "JSON",
+                processData: false,
+                contentType: false,
+                success: function (res) {
+                    layer.msg(res.msg, {time: 1000, icon: !res.code +1}, function () {
+                        if (res.code) {
+                            var index = parent.layer.getFrameIndex(window.name);
+                            parent.layer.close(index);
+                        }
+                    });
+
+                },
+                error: function (e) {
+
+                }
+            });
+            return false;
+        });
+
+    });
+
+    var testEditor;
+    testEditor = editormd("md-editor", {
+        placeholder:'本编辑器支持Markdown编辑，左边编写，右边预览',  //默认显示的文字，这里就不解释了
+        width: "100%",
+        height: 640,
+        syncScrolling: "single",
+        path: "/static/editor/lib/",   //你的path路径（原资源文件中lib包在我们项目中所放的位置）
+        saveHTMLToTextarea: true,
+        emoji: false,
+        taskList: true,
+        tocm: true,         // Using [TOCM]
+        tex: true,                   // 开启科学公式TeX语言支持，默认关闭
+        flowChart: true,             // 开启流程图支持，默认关闭
+        sequenceDiagram: true,       // 开启时序/序列图支持，默认关闭,
+        toolbarIcons : function() {  //自定义工具栏，后面有详细介绍
+            return editormd.toolbarModes['full']; // full, simple, mini
+        },
+        imageUpload: true,
+        imageFormats : ["jpg","jpeg","gif","png","bmp","webp"],
+        imageUploadURL:"{:url('admin/articles/picture')}",
+        onload: function() {
+            this.executePlugin("ImagePasteUpload", "image-paste-upload/image-paste-upload");
+            this.executePlugin("ContentAutoSave", "content-auto-save/content-auto-save");
+        }
+    });
+</script>
+{/block}
